@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { FileUpload } from '@/components/file-upload';
 import { DetectionOverlay } from '@/components/detection-overlay';
@@ -13,8 +11,9 @@ import { VideoProcessor } from '@/lib/video-processor';
 import { Detection } from '@/lib/types';
 import { checkBrowserCompatibility } from '@/lib/browser-checks';
 import { Play, Square, AlertCircle, Info, Camera, CameraOff } from 'lucide-react';
+import './globals.css';
 
-export default function Home() {
+function App() {
   // State management
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -153,13 +152,42 @@ export default function Home() {
       const url = URL.createObjectURL(selectedImage);
       imageRef.current.src = url;
       
-      // Set dimensions when image loads
-      imageRef.current.onload = () => {
-        if (imageRef.current) {
+      // Set dimensions when image loads and automatically trigger detection
+      const handleImageLoad = async () => {
+        if (imageRef.current && detectorRef.current) {
           const { naturalWidth, naturalHeight } = imageRef.current;
           setImageDimensions({ width: naturalWidth, height: naturalHeight });
+          
+          // Automatically run detection when image loads
+          try {
+            setIsProcessing(true);
+            setError(null);
+
+            // Create canvas to get image data
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+              setIsProcessing(false);
+              return;
+            }
+
+            canvas.width = naturalWidth;
+            canvas.height = naturalHeight;
+            ctx.drawImage(imageRef.current, 0, 0);
+
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const newDetections = await detectorRef.current.detectObjects(imageData);
+            setDetections(newDetections);
+          } catch (err) {
+            setError('Failed to detect objects in image');
+            console.error('Image detection error:', err);
+          } finally {
+            setIsProcessing(false);
+          }
         }
       };
+      
+      imageRef.current.onload = handleImageLoad;
       
       // Cleanup function to revoke object URL when component unmounts or file changes
       return () => {
@@ -330,33 +358,6 @@ export default function Home() {
     }
   }, []);
 
-  // Detect objects in image
-  const detectImage = useCallback(async () => {
-    if (!detectorRef.current || !imageRef.current) return;
-
-    try {
-      setIsProcessing(true);
-      setError(null);
-
-      // Create canvas to get image data
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      canvas.width = imageRef.current.naturalWidth;
-      canvas.height = imageRef.current.naturalHeight;
-      ctx.drawImage(imageRef.current, 0, 0);
-
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const newDetections = await detectorRef.current.detectObjects(imageData);
-      setDetections(newDetections);
-    } catch (err) {
-      setError('Failed to detect objects in image');
-      console.error('Image detection error:', err);
-    } finally {
-      setIsProcessing(false);
-    }
-  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -426,11 +427,11 @@ export default function Home() {
                     <div className="space-y-2 pl-4">
                       <div className="flex items-start">
                         <span className="font-semibold text-foreground min-w-[140px]">Framework:</span>
-                        <span className="text-muted-foreground">Next.js 16</span>
+                        <span className="text-muted-foreground">React 19 with Vite</span>
                       </div>
                       <div className="flex items-start">
                         <span className="font-semibold text-foreground min-w-[140px]">Runtime:</span>
-                        <span className="text-muted-foreground">Node.js 20</span>
+                        <span className="text-muted-foreground">Browser (Client-side)</span>
                       </div>
                       <div className="flex items-start">
                         <span className="font-semibold text-foreground min-w-[140px]">UI Library:</span>
@@ -642,7 +643,7 @@ export default function Home() {
 
                 {/* Video Preview Section - Only show for uploaded videos, not camera */}
                 {selectedFile && !isCameraActive && (
-                  <div className="mt-8">
+                  <div>
                     <div className="relative bg-background rounded overflow-hidden">
                       <video
                         ref={videoRef}
@@ -736,48 +737,37 @@ export default function Home() {
 
               {/* Image Preview Section */}
               {selectedImage && (
-                <div className="mt-8">
-                  <div className="relative bg-foreground rounded overflow-hidden">
-                    <img
-                      ref={imageRef}
-                      alt="Uploaded image"
-                      className="w-full h-auto min-h-[300px] max-h-[600px] object-contain"
-                      onLoad={() => {
-                        if (imageRef.current) {
-                          const { naturalWidth, naturalHeight } = imageRef.current;
-                          setImageDimensions({ width: naturalWidth, height: naturalHeight });
-                        }
-                      }}
-                    />
-                    <DetectionOverlay
-                      detections={detections}
-                      videoWidth={imageDimensions.width}
-                      videoHeight={imageDimensions.height}
-                      className="absolute inset-0"
-                    />
+                <>
+                  <div className="flex justify-center pb-5">
+                    <div className="relative inline-block max-w-full max-h-[80vh] overflow-auto" >
+                      <img
+                        ref={imageRef}
+                        alt="Uploaded image"
+                        className="block max-w-full max-h-[80vh] w-auto h-auto object-contain"
+                        onLoad={() => {
+                          if (imageRef.current) {
+                            const { naturalWidth, naturalHeight } = imageRef.current;
+                            setImageDimensions({ width: naturalWidth, height: naturalHeight });
+                          }
+                        }}
+                      />
+                      {imageDimensions.width > 0 && imageDimensions.height > 0 && (
+                        <DetectionOverlay
+                          detections={detections}
+                          videoWidth={imageDimensions.width}
+                          videoHeight={imageDimensions.height}
+                          className="absolute top-0 left-0"
+                        />
+                      )}
+                    </div>
                   </div>
 
                   {/* Image Controls */}
                   <div className="relative flex justify-center items-center mt-6">
-                    {!isProcessing ? (
-                      <Button
-                        onClick={detectImage}
-                        disabled={!selectedImage}
-                        variant="outline"
-                        className="px-6 py-2"
-                      >
-                        <Play className="h-4 w-4 mr-2" />
-                        Start Detection
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={stopProcessing}
-                        variant="outline"
-                        className="px-6 py-2"
-                      >
-                        <Square className="h-4 w-4 mr-2" />
-                        Stop Detection
-                      </Button>
+                    {isProcessing && (
+                      <div className="text-center">
+                        <p className="text-sm text-muted-foreground">Processing image...</p>
+                      </div>
                     )}
                     <div className="absolute right-0">
                       <FileUpload
@@ -797,7 +787,7 @@ export default function Home() {
                       />
                     </div>
                   </div>
-                </div>
+                </>
               )}
 
               {/* Remove the Tabs section from here - it's now at the top of the page */}
@@ -808,3 +798,6 @@ export default function Home() {
     </div>
   );
 }
+
+export default App;
+

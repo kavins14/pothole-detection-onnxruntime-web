@@ -12,7 +12,7 @@ yolov8-onnxruntime-web](https://github.com/Hyuto/yolov8-onnxruntime-web).
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 20+ 
 - Modern browser with WebGL support (Chrome, Edge, Firefox)
 - Camera access (for live detection)
 
@@ -21,7 +21,7 @@ yolov8-onnxruntime-web](https://github.com/Hyuto/yolov8-onnxruntime-web).
 1. **Clone and install dependencies:**
    ```bash
    git clone <repository-url>
-   cd yolov12-onnxruntime-web
+   cd ai-object-detector-poc
    npm install
    ```
 
@@ -31,7 +31,15 @@ yolov8-onnxruntime-web](https://github.com/Hyuto/yolov8-onnxruntime-web).
    ```
 
 1. **Open your browser:**
-   Navigate to `http://localhost:3000`
+   Navigate to `http://localhost:5173` (Vite default port)
+
+### Build for Production
+
+```bash
+npm run build
+```
+
+The built files will be in the `dist` directory, ready to be deployed to GitHub Pages or any static hosting service.
 
 ## 🏗️ Architecture
 
@@ -47,7 +55,7 @@ graph LR
 ### Technical Architecture
 
 ### Frontend Stack
-- **Next.js 15**: React framework with App Router
+- **Vite**: Fast build tool and dev server
 - **React 19**: UI components and state management
 - **TypeScript**: Type safety and better development experience
 - **Shadcn/ui**: Modern component library with tabs
@@ -60,10 +68,17 @@ graph LR
 
 ### Key Components
 
-- **`src/app/page.tsx`** - Main page with tabs for different input modes
+- **`src/App.tsx`** - Main application component with tabs for different input modes
+- **`src/main.tsx`** - React entry point
 - **`src/components/`** - UI components for video upload, camera stream, and detection overlay
 - **`src/lib/object-detector.ts`** - Core detection engine using ONNX Runtime
 - **`src/lib/video-processor.ts`** - Handles video frame extraction and processing
 - **`public/models/`** - YOLOv12 ONNX model and metadata
 
-**Built with Next.js, ONNX Runtime Web, and YOLOv12**
+### Deployment to GitHub Pages
+
+This project is configured for GitHub Pages deployment. The GitHub Actions workflow (`.github/workflows/deploy.yml`) will automatically build and deploy the app when you push to the main branch.
+
+**Important:** Make sure to update the `base` path in `vite.config.ts` to match your repository name if it's different from `ai-object-detector-poc`.
+
+**Built with React, Vite, ONNX Runtime Web, and YOLOv12**

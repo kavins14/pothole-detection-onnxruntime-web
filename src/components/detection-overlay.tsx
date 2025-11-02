@@ -1,6 +1,4 @@
-'use client';
-
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { Detection } from '@/lib/types';
 
 interface DetectionOverlayProps {
@@ -18,27 +16,44 @@ export function DetectionOverlay({
 }: DetectionOverlayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  // Helper function to get color based on class - vibrant color palette
+  const getClassColor = useCallback((className: string): string => {
+    const colorMap: Record<string, string> = {
+      'person': '#3B82F6', // Blue
+      'car': '#EF4444', // Red
+      'truck': '#F59E0B', // Amber
+      'bus': '#10B981', // Emerald
+      'motorcycle': '#8B5CF6', // Purple
+      'bicycle': '#EC4899', // Pink
+      'traffic light': '#F97316', // Orange
+      'stop sign': '#DC2626', // Red-600
+      'fire hydrant': '#EF4444', // Red
+      'dog': '#14B8A6', // Teal
+      'cat': '#6366F1', // Indigo
+      'bird': '#22C55E', // Green
+      'chair': '#A855F7', // Purple-500
+      'bottle': '#06B6D4', // Cyan
+      'cup': '#84CC16', // Lime
+      'laptop': '#64748B', // Slate
+      'phone': '#6366F1', // Indigo
+      'book': '#F59E0B', // Amber
+      'umbrella': '#EC4899', // Pink
+    };
+    
+    // Generate a color based on class name hash if not in map
+    if (!colorMap[className]) {
+      let hash = 0;
+      for (let i = 0; i < className.length; i++) {
+        hash = className.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const hue = Math.abs(hash) % 360;
+      return `hsl(${hue}, 70%, 55%)`;
+    }
+    
+    return colorMap[className];
+  }, []);
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Set canvas size to match video
-    canvas.width = videoWidth;
-    canvas.height = videoHeight;
-
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Draw detections
-    detections.forEach(detection => {
-      drawDetection(ctx, detection);
-    });
-  }, [detections, videoWidth, videoHeight]);
-
-  const drawDetection = (ctx: CanvasRenderingContext2D, detection: Detection) => {
+  const drawDetection = useCallback((ctx: CanvasRenderingContext2D, detection: Detection) => {
     const { x, y, width, height, confidence, class: className } = detection;
     
     // Set drawing style based on class
@@ -74,44 +89,27 @@ export function DetectionOverlay({
     ctx.beginPath();
     ctx.arc(indicatorX + indicatorSize/2, indicatorY + indicatorSize/2, indicatorSize/2, 0, 2 * Math.PI);
     ctx.fill();
-  };
+  }, [getClassColor]);
 
-  // Helper function to get color based on class - vibrant color palette
-  const getClassColor = (className: string): string => {
-    const colorMap: Record<string, string> = {
-      'person': '#3B82F6', // Blue
-      'car': '#EF4444', // Red
-      'truck': '#F59E0B', // Amber
-      'bus': '#10B981', // Emerald
-      'motorcycle': '#8B5CF6', // Purple
-      'bicycle': '#EC4899', // Pink
-      'traffic light': '#F97316', // Orange
-      'stop sign': '#DC2626', // Red-600
-      'fire hydrant': '#EF4444', // Red
-      'dog': '#14B8A6', // Teal
-      'cat': '#6366F1', // Indigo
-      'bird': '#22C55E', // Green
-      'chair': '#A855F7', // Purple-500
-      'bottle': '#06B6D4', // Cyan
-      'cup': '#84CC16', // Lime
-      'laptop': '#64748B', // Slate
-      'phone': '#6366F1', // Indigo
-      'book': '#F59E0B', // Amber
-      'umbrella': '#EC4899', // Pink
-    };
-    
-    // Generate a color based on class name hash if not in map
-    if (!colorMap[className]) {
-      let hash = 0;
-      for (let i = 0; i < className.length; i++) {
-        hash = className.charCodeAt(i) + ((hash << 5) - hash);
-      }
-      const hue = Math.abs(hash) % 360;
-      return `hsl(${hue}, 70%, 55%)`;
-    }
-    
-    return colorMap[className];
-  };
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Set canvas size to match video
+    canvas.width = videoWidth;
+    canvas.height = videoHeight;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw detections
+    detections.forEach(detection => {
+      drawDetection(ctx, detection);
+    });
+  }, [detections, videoWidth, videoHeight, drawDetection]);
 
   return (
     <canvas

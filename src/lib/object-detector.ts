@@ -14,14 +14,19 @@ export class ObjectDetector {
    */
   async initialize(): Promise<void> {
     try {
-      // Load model metadata
-      const metadataResponse = await fetch('/models/model-metadata.json');
-      this.metadata = await metadataResponse.json();
+      // Configure ONNX Runtime Web to use CDN for WASM files FIRST
+      // This ensures WASM files are always available, even with base path configurations
+      // Must be set before any ONNX Runtime operations
+      ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.23.0/dist/';
+      ort.env.wasm.simd = true;
+      ort.env.wasm.proxy = false;
 
-      // Configure ONNX Runtime Web
-    //   ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.16.3/dist/';
-    //   ort.env.wasm.simd = true;
-    //   ort.env.wasm.proxy = false;
+      // Get base path for GitHub Pages compatibility
+      const basePath = import.meta.env.BASE_URL || '/';
+      
+      // Load model metadata
+      const metadataResponse = await fetch(`${basePath}models/model-metadata.json`);
+      this.metadata = await metadataResponse.json();
       
       // Try different execution providers in order of preference
       const executionProviders = [
@@ -37,7 +42,7 @@ export class ObjectDetector {
         try {
           console.log(`Trying execution providers: ${providers.join(', ')}`);
           
-          this.session = await ort.InferenceSession.create('/models/yolov12n.onnx', {
+          this.session = await ort.InferenceSession.create(`${basePath}models/yolov12n.onnx`, {
             executionProviders: providers,
             graphOptimizationLevel: 'all',
             enableCpuMemArena: true,
