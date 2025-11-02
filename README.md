@@ -1,11 +1,13 @@
 # YOLOv12 ONNX Runtime Web
 
-![vid1 (1)](https://github.com/user-attachments/assets/479e9631-2937-4818-b636-d8cb834a380f)
+![demo](/public/demo.png)
 
 ![react](https://img.shields.io/badge/React-blue?logo=react)
 ![onnxruntime-web](https://img.shields.io/badge/onnxruntime--web-white?logo=onnx&logoColor=black)
 
-A minimalistic real-time object detection application built with YOLOv12 and ONNX Runtime Web for browser-based AI inference. Inspired by [Hyuto/
+A minimalistic real-time object detection application built with YOLOv12 and ONNX Runtime Web for browser-based AI inference. 
+
+- Inspired by [Hyuto/
 yolov8-onnxruntime-web](https://github.com/Hyuto/yolov8-onnxruntime-web).
 
 ## 🚀 Quick Start
@@ -80,5 +82,10 @@ graph LR
 This project is configured for GitHub Pages deployment. The GitHub Actions workflow (`.github/workflows/deploy.yml`) will automatically build and deploy the app when you push to the main branch.
 
 **Important:** Make sure to update the `base` path in `vite.config.ts` to match your repository name if it's different from `ai-object-detector-poc`.
+
+### 🙏 Credits & Inspiration
+
+- **Inspired by:** [Hyuto / yolov8-onnxruntime-web](https://github.com/Hyuto/yolov8-onnxruntime-web)  
+- **Stock image:** [Group of people sitting beside rectangular wooden table with laptops — Unsplash](https://unsplash.com/photos/group-of-people-sitting-beside-rectangular-wooden-table-with-laptops-34GZCgaVksk)
 
 **Built with React, Vite, ONNX Runtime Web, and YOLOv12**

@@ -58,27 +58,40 @@ export function DetectionOverlay({
     
     // Set drawing style based on class
     const color = getClassColor(className);
-    const label = `${className} (${(confidence * 100).toFixed(1)}%)`;
+    const confidenceText = `(${(confidence * 100).toFixed(1)}%)`;
     
     // Draw bounding box
     ctx.strokeStyle = color;
     ctx.lineWidth = 3;
     ctx.strokeRect(x, y, width, height);
     
-    // Draw background for label
-    const labelWidth = ctx.measureText(label).width + 8;
-    const labelHeight = 20;
+    // Draw class name in large font
+    ctx.font = 'bold 70px Arial';
+    ctx.textBaseline = 'top';
+    const classNameWidth = ctx.measureText(className).width;
+    
+    // Draw confidence in smaller font
+    ctx.font = '70px Arial';
+    const confidenceWidth = ctx.measureText(confidenceText).width;
+    
+    const labelWidth = classNameWidth + confidenceWidth + 20;
+    const labelHeight = 85;
     const labelX = x;
     const labelY = y - labelHeight;
     
+    // Draw background for label
     ctx.fillStyle = color;
     ctx.fillRect(labelX, labelY, labelWidth, labelHeight);
     
-    // Draw label text
+    // Draw class name (large)
     ctx.fillStyle = 'white';
-    ctx.font = '12px Arial';
+    ctx.font = 'bold 70px Arial';
     ctx.textBaseline = 'top';
-    ctx.fillText(label, labelX + 4, labelY + 2);
+    ctx.fillText(className, labelX + 10, labelY + 5);
+    
+    // Draw confidence percentage
+    ctx.font = '70px Arial';
+    ctx.fillText(confidenceText, labelX + classNameWidth + 10, labelY + 5);
     
     // Draw class indicator (small circle)
     const indicatorSize = 8;

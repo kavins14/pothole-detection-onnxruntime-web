@@ -739,11 +739,11 @@ function App() {
               {selectedImage && (
                 <>
                   <div className="flex justify-center pb-5">
-                    <div className="relative inline-block max-w-full max-h-[80vh] overflow-auto" >
+                    <div className="relative inline-block max-w-full overflow-auto" >
                       <img
                         ref={imageRef}
                         alt="Uploaded image"
-                        className="block max-w-full max-h-[80vh] w-auto h-auto object-contain"
+                        className="block max-w-full w-auto h-auto object-contain"
                         onLoad={() => {
                           if (imageRef.current) {
                             const { naturalWidth, naturalHeight } = imageRef.current;
