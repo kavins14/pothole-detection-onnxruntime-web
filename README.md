@@ -83,9 +83,9 @@ This project is configured for GitHub Pages deployment. The GitHub Actions workf
 
 **Important:** Make sure to update the `base` path in `vite.config.ts` to match your repository name if it's different from `ai-object-detector-poc`.
 
-### 🙏 Credits & Inspiration
+**Built with React, Vite, ONNX Runtime Web, and YOLOv12**
+
+## 🙏 Credits & Inspiration
 
 - **Inspired by:** [Hyuto / yolov8-onnxruntime-web](https://github.com/Hyuto/yolov8-onnxruntime-web)  
 - **Stock image:** [Group of people sitting beside rectangular wooden table with laptops — Unsplash](https://unsplash.com/photos/group-of-people-sitting-beside-rectangular-wooden-table-with-laptops-34GZCgaVksk)
-
-**Built with React, Vite, ONNX Runtime Web, and YOLOv12**
