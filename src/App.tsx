@@ -113,6 +113,26 @@ function App() {
     };
   }, [browserCheckError]);
 
+  // Auto-dismiss error messages after 5 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
+  // Auto-dismiss browser check error messages after 5 seconds
+  useEffect(() => {
+    if (browserCheckError) {
+      const timer = setTimeout(() => {
+        setBrowserCheckError(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [browserCheckError]);
+
   // Handle video element becoming available when camera is active
   useEffect(() => {
     if (isCameraActive && streamRef.current && videoRef.current) {
