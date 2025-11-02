@@ -10,9 +10,9 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  // Only use base path in production (for GitHub Pages)
-  // In development, use root path for easier testing
-  base: process.env.NODE_ENV === 'production' ? '/ai-object-detector-poc/' : '/',
+  // Use base path from environment variable for GitHub Pages, or default to root
+  // GitHub Actions will set BASE_PATH environment variable
+  base: process.env.BASE_PATH || (process.env.NODE_ENV === 'production' ? '/ai-object-detector-poc/' : '/'),
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
