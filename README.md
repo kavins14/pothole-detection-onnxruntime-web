@@ -78,7 +78,7 @@ graph LR
 
 This project is configured for GitHub Pages deployment. The GitHub Actions workflow (`.github/workflows/deploy.yml`) will automatically build and deploy the app when you push to the main branch.
 
-**Important:** Make sure to update the `base` path in `vite.config.ts` to match your repository name if it's different from `ai-object-detector-poc`.
+**Important:** Make sure to update the `base` path in `vite.config.ts` to match your repository name if it's different from `ai-object-detector`.
 
 **Built with React, Vite, ONNX Runtime Web, and YOLOv12**
 

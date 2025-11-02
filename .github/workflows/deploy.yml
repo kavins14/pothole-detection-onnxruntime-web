@@ -33,7 +33,7 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          BASE_PATH: /ai-object-detector-poc/
+          BASE_PATH: /ai-object-detector/
           NODE_ENV: production
 
       - name: Setup Pages
