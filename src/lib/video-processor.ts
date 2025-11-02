@@ -101,7 +101,8 @@ export class VideoProcessor {
     this.emitFrame(imageData);
   }
 
-  private emitFrame(imageData: ImageData): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private emitFrame(_: ImageData): void {
     // This method will be called by the detector when it's ready to process
     // The actual detection logic is in the PotholeDetector class
   }
