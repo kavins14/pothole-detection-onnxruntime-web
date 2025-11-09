@@ -1,4 +1,4 @@
-import * as ort from 'onnxruntime-web';
+import * as ort from 'onnxruntime-web/webgpu';
 import { Detection, ModelMetadata } from './types';
 
 /**
@@ -29,11 +29,11 @@ export class ObjectDetector {
       this.metadata = await metadataResponse.json();
       
       // Try different execution providers in order of preference
+      // WebGPU is preferred for better performance on supported browsers
       const executionProviders = [
-        ['wasm'],
-        // ['webgl'],
-        // ['cpu'],
-        // ['webgl', 'cpu']
+        ['webgpu'],
+        // ['wasm'], // Fallback to WASM if WebGPU is not available
+        // ['cpu']   // Final fallback to CPU
       ];
 
       let lastError: Error | null = null;

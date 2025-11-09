@@ -12,7 +12,7 @@ A minimalistic real-time object detection application built with YOLOv12 and ONN
 ### Prerequisites
 
 - Node.js 20+ 
-- Modern browser with WebGL support (Chrome, Edge, Firefox)
+- Modern browser with WebGPU support (Chrome, Edge, or Firefox)
 - Camera access (for live detection)
 
 ### Installation

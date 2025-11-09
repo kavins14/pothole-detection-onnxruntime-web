@@ -8,7 +8,31 @@ export interface BrowserCheckResult {
 }
 
 /**
- * Checks if WebGL is supported
+ * Checks if WebGPU is supported
+ */
+export function checkWebGPU(): BrowserCheckResult {
+  try {
+    if (!navigator.gpu) {
+      return {
+        passed: false,
+        message: 'WebGPU is not supported. Please use a modern browser like Chrome 113+, Edge 113+, or Firefox Nightly with WebGPU enabled.'
+      };
+    }
+    
+    return {
+      passed: true,
+      message: 'WebGPU is supported'
+    };
+  } catch (e) {
+    return {
+      passed: false,
+      message: 'WebGPU check failed: ' + (e instanceof Error ? e.message : 'Unknown error')
+    };
+  }
+}
+
+/**
+ * Checks if WebGL is supported (fallback option)
  */
 export function checkWebGL(): BrowserCheckResult {
   try {
@@ -94,6 +118,7 @@ export function checkBrowserCompatibility(): {
   errors: string[];
 } {
   const checks = [
+    { name: 'WebGPU', check: checkWebGPU },
     { name: 'WebGL', check: checkWebGL },
     { name: 'MediaStream', check: checkMediaStream },
     { name: 'FileReader', check: checkFileReader },
