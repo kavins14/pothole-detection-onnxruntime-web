@@ -19,6 +19,7 @@ export function DetectionOverlay({
   // Helper function to get color based on class - vibrant color palette
   const getClassColor = useCallback((className: string): string => {
     const colorMap: Record<string, string> = {
+      'pothole': '#EF4444', // Red - prominent color for potholes
       'person': '#3B82F6', // Blue
       'car': '#EF4444', // Red
       'truck': '#F59E0B', // Amber
@@ -54,7 +55,7 @@ export function DetectionOverlay({
   }, []);
 
   const drawDetection = useCallback((ctx: CanvasRenderingContext2D, detection: Detection) => {
-    const { x, y, width, height, confidence, class: className } = detection;
+    const { x, y, width, height, confidence, class: className, trackId } = detection;
     
     // Set drawing style based on class
     const color = getClassColor(className);
@@ -74,8 +75,17 @@ export function DetectionOverlay({
     ctx.font = '35px Arial';
     const confidenceWidth = ctx.measureText(confidenceText).width;
     
-    const labelWidth = classNameWidth + confidenceWidth + 20;
-    const labelHeight = 45;
+    // Draw track ID if available
+    let trackIdText = '';
+    let trackIdWidth = 0;
+    if (trackId !== undefined) {
+      trackIdText = `ID: ${trackId}`;
+      ctx.font = 'bold 30px Arial';
+      trackIdWidth = ctx.measureText(trackIdText).width;
+    }
+    
+    const labelWidth = classNameWidth + confidenceWidth + (trackIdWidth > 0 ? trackIdWidth + 20 : 0) + 20;
+    const labelHeight = trackId !== undefined ? 70 : 45;
     const labelX = x;
     const labelY = y - labelHeight;
     
@@ -92,6 +102,12 @@ export function DetectionOverlay({
     // Draw confidence percentage
     ctx.font = '35px Arial';
     ctx.fillText(confidenceText, labelX + classNameWidth + 10, labelY + 5);
+    
+    // Draw track ID if available
+    if (trackId !== undefined) {
+      ctx.font = 'bold 30px Arial';
+      ctx.fillText(trackIdText, labelX + 10, labelY + 50);
+    }
     
     // Draw class indicator (small circle)
     const indicatorSize = 8;
@@ -119,9 +135,9 @@ export function DetectionOverlay({
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw detections
-    detections.forEach(detection => {
+    for (const detection of detections) {
       drawDetection(ctx, detection);
-    });
+    }
   }, [detections, videoWidth, videoHeight, drawDetection]);
 
   return (

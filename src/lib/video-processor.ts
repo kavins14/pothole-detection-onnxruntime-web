@@ -1,4 +1,5 @@
 import { Detection, DetectionStats } from './types';
+import { DeepSortTracker } from './deep-sort-tracker';
 
 /**
  * Processes video frames for object detection
@@ -13,6 +14,7 @@ export class VideoProcessor {
   private detectionCallback: (detections: Detection[]) => void;
   private statsCallback: (stats: DetectionStats) => void;
   private allDetections: Detection[] = [];
+  private tracker: DeepSortTracker;
   private stats: DetectionStats = {
     totalDetections: 0,
     averageConfidence: 0,
@@ -30,6 +32,9 @@ export class VideoProcessor {
     // Create hidden canvas for frame extraction
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext('2d')!;
+    
+    // Initialize DeepSORT tracker
+    this.tracker = new DeepSortTracker();
   }
 
   /**
@@ -111,14 +116,17 @@ export class VideoProcessor {
    * Updates detection results and statistics
    */
   updateDetections(detections: Detection[]): void {
+    // Update tracker with new detections
+    const trackedDetections = this.tracker.update(detections);
+    
     // Accumulate for statistics (total counts across all frames)
-    this.allDetections = [...this.allDetections, ...detections];
-    this.updateStats(detections);
+    this.allDetections = [...this.allDetections, ...trackedDetections];
+    this.updateStats(trackedDetections);
     
-    console.log(`Frame detections: ${detections.length}, Total accumulated: ${this.allDetections.length}`);
+    console.log(`Frame detections: ${detections.length}, Tracked detections: ${trackedDetections.length}, Total accumulated: ${this.allDetections.length}`);
     
-    // Send current frame detections for display (replaces previous frame's detections)
-    this.detectionCallback(detections);
+    // Send tracked detections for display (replaces previous frame's detections)
+    this.detectionCallback(trackedDetections);
     this.statsCallback(this.stats);
   }
 
@@ -165,6 +173,7 @@ export class VideoProcessor {
       lastDetectionTime: 0,
       classCounts: {}
     };
+    this.tracker.reset();
     this.statsCallback(this.stats);
   }
 

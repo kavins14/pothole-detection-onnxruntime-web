@@ -42,7 +42,7 @@ export class ObjectDetector {
         try {
           console.log(`Trying execution providers: ${providers.join(', ')}`);
           
-          this.session = await ort.InferenceSession.create(`${basePath}models/yolov12n.onnx`, {
+          this.session = await ort.InferenceSession.create(`${basePath}models/yolov8n-seg-pothole.onnx`, {
             executionProviders: providers,
             graphOptimizationLevel: 'all',
             enableCpuMemArena: true,
@@ -92,20 +92,24 @@ export class ObjectDetector {
 
       // Run inference using actual model input/output names
       const inputName = this.session.inputNames[0];
-      const outputName = this.session.outputNames[0];
+      const outputNames = this.session.outputNames;
       
-      console.log(`Using input name: ${inputName}, output name: ${outputName}`);
+      console.log(`Using input name: ${inputName}, output names: ${outputNames}`);
       
       const results = await this.session.run({ [inputName]: input });
-      const output = results[outputName] as ort.Tensor;
+      
+      // Get output: output0 (boxes + mask coefficients)
+      const output0 = results[outputNames[0]] as ort.Tensor;
       
       console.log('Model output results:', results);
-      console.log('Output tensor:', output);
-      console.log('Tensor shape:', output.dims);
-      console.log('Tensor data type:', output.type);
+      console.log('Output0 (boxes) tensor shape:', output0.dims);
 
-      // Postprocess results
-      const detections = this.postprocessResults(output, imageData.width, imageData.height);
+      // Postprocess results (only bounding boxes)
+      const detections = await this.postprocessResults(
+        output0, 
+        imageData.width, 
+        imageData.height
+      );
       
       return detections;
     } catch (error) {
@@ -180,7 +184,11 @@ export class ObjectDetector {
   /**
    * Converts model output to Detection objects with transformed coordinates
    */
-  private postprocessResults(output: ort.Tensor, originalWidth: number, originalHeight: number): Detection[] {
+  private async postprocessResults(
+    output0: ort.Tensor, 
+    originalWidth: number, 
+    originalHeight: number
+  ): Promise<Detection[]> {
     const [inputWidth, inputHeight] = this.metadata!.inputSize;
     
     // Calculate padding offsets for coordinate transformation
@@ -204,22 +212,25 @@ export class ObjectDetector {
     }
     
     const detections: Detection[] = [];
-    const outputData = output.data as Float32Array;
+    const output0Data = output0.data as Float32Array;
     
-    // YOLO output format: [batch, num_detections, 6] where 6 = x1, y1, x2, y2, confidence, class_id
-    const numDetections = output.dims[1]; // 300
-    console.log(`Processing ${numDetections} detections from tensor shape:`, output.dims);
+    // YOLOv8 segmentation output format: 
+    // output0: [batch, num_detections, 6+32] where first 6 = x1, y1, x2, y2, confidence, class_id, then 32 mask coefficients
+    const numDetections = output0.dims[1];
+    const featuresPerDetection = output0.dims[2]; // Should be 6 + 32 = 38
+    
+    console.log(`Processing ${numDetections} detections from tensor shape:`, output0.dims);
     
     for (let i = 0; i < numDetections; i++) {
-      const startIdx = i * 6; // Fixed 6 values per detection
+      const startIdx = i * featuresPerDetection;
       
       // Get bounding box coordinates (x1, y1, x2, y2)
-      const x1 = outputData[startIdx];
-      const y1 = outputData[startIdx + 1];
-      const x2 = outputData[startIdx + 2];
-      const y2 = outputData[startIdx + 3];
-      const confidence = outputData[startIdx + 4];
-      const classId = Math.round(outputData[startIdx + 5]); // Class ID as integer
+      const x1 = output0Data[startIdx];
+      const y1 = output0Data[startIdx + 1];
+      const x2 = output0Data[startIdx + 2];
+      const y2 = output0Data[startIdx + 3];
+      const confidence = output0Data[startIdx + 4];
+      const classId = Math.round(output0Data[startIdx + 5]);
       
       // Skip low confidence detections
       if (confidence < this.metadata!.confidenceThreshold) continue;
